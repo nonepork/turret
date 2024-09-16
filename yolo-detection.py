@@ -1,33 +1,31 @@
-import torch
-import numpy as np
+import cv2
 from ultralytics import YOLO
 
-# https://github.com/orgs/ultralytics/discussions/8437
+model = YOLO("yolov8n-pose.pt")
 
-camera1_index = ''  # Input your camera
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+camera_sources = [2, 4, 6, 8]
+caps = [cv2.VideoCapture(src) for src in camera_sources]
 
-labels = [
-    'nose',
-    'left_eye',
-    'right_eye',
-    'left_ear',
-    'right_ear',
-    'left_shoulder',
-    'right_shoulder',
-    'left_elbow',
-    'right_elbow',
-    'left_wrist',
-    'right_wrist',
-    'left_hip',
-    'right_hip',
-    'left_knee',
-    'right_knee',
-    'left_ankle',
-    'right_ankle',
-]
 
-model = YOLO('yolov8n-pose.pt')
+def process_frame(frame):
+    results = model(frame)
+    annotated_frame = results[0].plot()
+    return annotated_frame
 
-for result in model(source=camera1_index, device=device, stream=True, conf=0.3):
-    print(result)
+
+while True:
+    for i, cap in enumerate(caps):
+        ret, frame = cap.read()
+        if not ret:
+            print(f"無法從攝像頭 {i} 獲取影像")
+            continue
+
+        annotated_frame = process_frame(frame)
+        cv2.imshow(f"Camera {i}", annotated_frame)
+
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+for cap in caps:
+    cap.release()
+cv2.destroyAllWindows()
