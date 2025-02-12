@@ -41,10 +41,11 @@ def detect_person(frame):
         y2 = int(max(y_coords) + padding)
 
         # Convert to original scale and return in (x, y, w, h) format
+        # WARN: you stupid, go figure out how this works xD
         x = int(x1 / scale_factor)
-        y = int(y1 / scale_factor)
+        y = int(y1 - 0.4 / scale_factor)
         w = int((x2 - x1) / scale_factor)
-        h = int((y2 - y1) / scale_factor)
+        h = int((y2 - y1) * 2.2 / scale_factor)
 
         return (x, y, w, h)
 
